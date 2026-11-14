@@ -57,11 +57,11 @@ Join a voice channel, press the Activities button (the rocket), and pick your ap
 
 ## Optional: the bot token
 
-With `DISCORD_BOT_TOKEN` in `.env`, the server asks Discord whether each person really is in the activity they claim to be in. Without it, the room name (a long random ID Discord makes) is the only thing keeping strangers out. Get the token from the **Bot** page.
+With `DISCORD_BOT_TOKEN` set (in `.env` on your PC, or under **Environment** on Render), the server asks Discord whether each person really is in the activity they claim to be in. Without it, the room name (a long random ID Discord makes) is the only thing keeping strangers out. Get the token from the **Bot** page.
 
 ## If something goes wrong
 
 - A blank or "Couldn’t sign you in" screen in Discord usually means the Client ID, Secret or URL mapping is wrong, or the server was asleep: wait a minute and open it again.
-- "Open this from the Activities button" means you opened the tunnel address in a normal browser. That's expected.
+- "Open this from the Activities button" means you opened the Render address in a normal browser. That's expected.
 - The server keeps games in memory. Restarting it ends every game.
 - Render’s dashboard has a **Logs** tab that shows what the server printed.
