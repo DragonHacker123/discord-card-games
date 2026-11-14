@@ -19,35 +19,29 @@ Open http://localhost:5200 in two or three browser tabs. Each tab is a different
 3. Still on OAuth2, add a redirect: `https://127.0.0.1`. Discord needs one to exist, but the Activity never visits it. **(check)**
 4. In the project folder, copy `.env.example` to `.env` and paste the two values in. Never share `.env` or paste it into a chat.
 
-## 2. Put the server on the internet
+## 2. Put the server on Render
 
-Discord has to reach your server over HTTPS. The cheapest way to test is a Cloudflare quick tunnel from this PC. It's free and needs no account, but the address changes every time you start it, and the game only works while your PC is on.
+The code is in a private GitHub repo: https://github.com/DragonHacker123/discord-card-games. Render builds and runs it from there, using the settings in `render.yaml` (free plan, Frankfurt, one copy only).
 
-1. Install `cloudflared` (Cloudflare's tunnel program).
-2. Start the game server:
+1. Sign up at https://render.com. Signing up with GitHub is easiest.
+2. In the Render dashboard, choose **New**, then **Blueprint**.
+3. Connect GitHub if asked, and give Render access to the `discord-card-games` repo. Pick that repo.
+4. Render reads `render.yaml` and asks for `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`. Paste the same values as in your `.env`. Then apply it.
+5. The first build takes a few minutes. When it's live, Render shows an address like `https://discord-card-games.onrender.com`. Add `/api/health` to the end of it in a browser: it should say `{"ok":true,...}`.
 
-```bash
-npm run build:activity
-```
+Things to know about the free plan:
 
-```bash
-npm start
-```
+- It sleeps after 15 minutes with nobody connected. The next person to open the game waits about a minute while it wakes. If Discord shows an error the first time, wait a minute and open it again.
+- A game in progress keeps it awake.
+- Whenever it sleeps, restarts or updates, any game in progress ends.
+- When the code changes, it's pushed to GitHub and Render updates itself.
 
-3. In a second terminal, start the tunnel:
-
-```bash
-cloudflared tunnel --url http://localhost:3000
-```
-
-It prints an address like `https://some-words.trycloudflare.com`.
-
-For something permanent, the server is one ordinary Node program (`npm start`, port from `PORT`) and needs a host that allows WebSockets and doesn't put the program to sleep mid-game. I haven't compared hosts or prices, so that is still to decide.
+To test on your own PC instead, `npm run dev` still works (see above).
 
 ## 3. Turn on the Activity
 
 1. In the developer portal, open **Activities** and switch **Enable Activities** on. **(check)**
-2. Under **URL Mappings**, set the root mapping `/` to your tunnel address without the `https://` (for example `some-words.trycloudflare.com`).
+2. Under **URL Mappings**, set the root mapping `/` to your Render address without the `https://` (for example `discord-card-games.onrender.com`).
 3. Open **Installation** and use the install link to add the app to your server.
 
 Until Discord verifies the app, it only works in servers with fewer than 25 members, and only you and people you add as **App Testers** can see it (up to 50). **(check)** Verification is a separate form in the portal for later.
@@ -67,6 +61,7 @@ With `DISCORD_BOT_TOKEN` in `.env`, the server asks Discord whether each person 
 
 ## If something goes wrong
 
-- A blank or "Couldn't sign you in" screen in Discord usually means the Client ID, Secret or URL mapping is wrong, or the tunnel address has changed since you set the mapping.
+- A blank or "Couldn’t sign you in" screen in Discord usually means the Client ID, Secret or URL mapping is wrong, or the server was asleep: wait a minute and open it again.
 - "Open this from the Activities button" means you opened the tunnel address in a normal browser. That's expected.
 - The server keeps games in memory. Restarting it ends every game.
+- Render’s dashboard has a **Logs** tab that shows what the server printed.
