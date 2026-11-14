@@ -1,0 +1,59 @@
+/* The Discord version: the table's own styles, fonts served from our server
+   (Discord blocks outside font hosts), and the room screen. */
+@import "@fontsource/alegreya-sans/latin-400.css";
+@import "@fontsource/alegreya-sans/latin-500.css";
+@import "@fontsource/alegreya-sans/latin-700.css";
+@import "@fontsource/alegreya-sans/latin-800.css";
+@import "@fontsource/alegreya/latin-700.css";
+@import "@fontsource/alegreya/latin-800.css";
+@import "@fontsource/im-fell-english-sc/latin-400.css";
+@import "../games/jacks/style.css";
+
+/* What the test page gets from the viewer it runs in. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+
+/* The test page's own menu and tools have no place here. */
+#lobby, #gameSettingsBtn, #dealAgainBtn, #lobbyBtn, .side .panel:has(#xrayToggle) { display: none !important; }
+
+.notice { margin: 18vh auto 0; max-width: 520px; padding: 0 16px; text-align: center; }
+.notice h1 { color: var(--brass); font-family: var(--display); font-size: clamp(3rem, 10vw, 6rem); font-weight: 400; line-height: 1; margin: 0 0 16px; }
+.notice p { color: var(--muted); margin: 0 0 14px; }
+
+.room-seats { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); list-style: none; margin: 0; padding: 0; }
+.room-seat {
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  min-height: 56px;
+  min-width: 0;
+  padding: 8px 10px;
+}
+.room-seat.is-empty { border-style: dashed; color: var(--muted); justify-content: center; }
+.room-seat.is-away { opacity: 0.6; }
+.room-face {
+  align-items: center;
+  background: var(--back);
+  border: 1px solid var(--back-line);
+  border-radius: 50%;
+  color: var(--ivory);
+  display: flex;
+  flex: none;
+  font-weight: 800;
+  height: 38px;
+  justify-content: center;
+  overflow: hidden;
+  width: 38px;
+}
+.room-face img { display: block; height: 100%; object-fit: cover; width: 100%; }
+.room-who { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.room-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-tag { color: var(--brass); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.room-seat .btn { flex: none; }
+.room-heading { font-weight: 700; margin: 0; }
+.room-hint { color: var(--bad); margin: 0; min-height: 1.4em; }

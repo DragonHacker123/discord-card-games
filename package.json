@@ -1,0 +1,26 @@
+{
+  "name": "discord-card-games",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Card games for a Discord Activity. Jacks is the first game.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test",
+    "build": "node tools/build-artifact.mjs",
+    "build:activity": "node tools/build-activity.mjs",
+    "serve": "node tools/serve.mjs",
+    "dev": "node tools/build-activity.mjs && node server/main.js --dev",
+    "start": "node server/main.js"
+  },
+  "dependencies": {
+    "@discord/embedded-app-sdk": "2.5.0",
+    "@fontsource/alegreya": "5.3.0",
+    "@fontsource/alegreya-sans": "5.3.0",
+    "@fontsource/im-fell-english-sc": "5.3.0",
+    "esbuild": "0.28.2",
+    "ws": "8.22.0"
+  }
+}

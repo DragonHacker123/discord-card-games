@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jacks",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/serve.mjs"],
+      "port": 5199
+    },
+    {
+      "name": "activity",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/main.js", "--dev"],
+      "port": 5200
+    }
+  ]
+}

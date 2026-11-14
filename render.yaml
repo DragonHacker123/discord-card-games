@@ -1,0 +1,19 @@
+# Render Blueprint for the card games server.
+# On render.com: New > Blueprint, pick this repository, and fill in the
+# Discord values it asks for. Never put those values in this file.
+services:
+  - type: web
+    name: discord-card-games
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build:activity
+    startCommand: npm start
+    healthCheckPath: /api/health
+    # Games live in memory, so there must only ever be one copy running.
+    numInstances: 1
+    envVars:
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
