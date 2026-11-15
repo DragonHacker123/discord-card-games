@@ -10,6 +10,7 @@
 @import "../games/jacks/style.css";
 @import "../games/gofish/style.css";
 @import "../games/blackjack/style.css";
+@import "../games/holdem/style.css";
 
 /* What the test page gets from the viewer it runs in. */
 *, *::before, *::after { box-sizing: border-box; }

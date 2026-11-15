@@ -6,6 +6,7 @@ import { DiscordSDK } from '@discord/embedded-app-sdk';
 import { startOnline } from '../games/jacks/ui.js';
 import { createFishTable } from '../games/gofish/table.js';
 import { createBlackjackTable } from '../games/blackjack/table.js';
+import { createHoldemTable } from '../games/holdem/table.js';
 
 const inDiscord = new URLSearchParams(location.search).has('frame_id');
 // Inside Discord, everything goes through its proxy.
@@ -56,7 +57,7 @@ function showNotice(text, action) {
   notice.hidden = false;
   roomScreen.hidden = true;
   document.getElementById('game').hidden = true;
-  for (const id of ['gofish', 'blackjack']) {
+  for (const id of ['gofish', 'blackjack', 'holdem']) {
     const other = document.getElementById(id);
     if (other) other.hidden = true;
   }
@@ -104,7 +105,30 @@ const blackjack = createBlackjackTable({
   cardSvg: table.cardSvg,
   escapeHtml,
 });
-const tables = { jacks: table, gofish: fish, blackjack };
+const holdem = createHoldemTable({
+  act: (action) => send({ t: 'act', action }),
+  away: (seat) => Boolean(state.room?.seats[seat]?.away),
+  isHost,
+  deal: () => send({ t: 'start' }),
+  lobby: () => send({ t: 'lobby' }),
+  cardSvg: table.cardSvg,
+  escapeHtml,
+});
+const tables = { jacks: table, gofish: fish, blackjack, holdem };
+
+/** A row of buttons for how many hands a game lasts. */
+function handsPicker(choices, current, field) {
+  const row = make('div', 'rounds-picker');
+  row.setAttribute('role', 'group');
+  row.setAttribute('aria-label', 'Hands in a game');
+  row.append(make('span', '', 'Hands'));
+  for (const count of choices) {
+    const choice = button(String(count), () => send({ t: 'rules', rules: { [field]: count } }), 'btn btn-small');
+    choice.setAttribute('aria-pressed', String(current === count));
+    row.append(choice);
+  }
+  return row;
+}
 const showing = () => tables[state.playing] ?? table;
 
 // The host can stop a game from the side of the table. It takes two presses.
@@ -223,19 +247,12 @@ function renderRoom() {
 
   if (room.game === 'jacks') setup.append(make('p', 'settings-summary', table.summary(room.rules)));
   if (room.game === 'blackjack') {
-    if (host) {
-      const rounds = make('div', 'rounds-picker');
-      rounds.setAttribute('role', 'group');
-      rounds.setAttribute('aria-label', 'Hands in a game');
-      rounds.append(make('span', '', 'Hands'));
-      for (const count of [5, 10, 20]) {
-        const choice = button(String(count), () => send({ t: 'rules', rules: { rounds: count } }), 'btn btn-small');
-        choice.setAttribute('aria-pressed', String(room.rules.rounds === count));
-        rounds.append(choice);
-      }
-      setup.append(rounds);
-    }
+    if (host) setup.append(handsPicker([5, 10, 20], room.rules.rounds, 'rounds'));
     setup.append(make('p', 'settings-summary', `${room.rules.rounds} hands. Everyone starts with 1,000 chips. Most chips wins.`));
+  }
+  if (room.game === 'holdem') {
+    if (host) setup.append(handsPicker([10, 20, 40], room.rules.hands, 'hands'));
+    setup.append(make('p', 'settings-summary', `${room.rules.hands} hands. Everyone starts with 1,000 chips. Blinds 10 and 20. Most chips wins.`));
   }
   const hint = make('p', 'room-hint', hintText);
   hint.setAttribute('role', 'alert');
@@ -265,6 +282,7 @@ function onRoom(room) {
     table.close();
     fish.close();
     blackjack.close();
+    holdem.close();
     state.inGame = false;
     state.playing = null;
   }

@@ -186,7 +186,7 @@ test('the host can switch the room to Go Fish and play it', async () => {
   const gil = client(a.session, 'fishroom');
   const first = await gil.next((m) => m.t === 'room');
   assert.equal(first.room.game, 'jacks');
-  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'blackjack', 'gofish']);
+  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'blackjack', 'holdem', 'gofish']);
   const hal = client(b.session, 'fishroom');
   await hal.next((m) => m.t === 'room');
 
@@ -254,4 +254,38 @@ test('one person can play Blackjack against the house', async () => {
   if (dealt.view.phase === 'play') assert.equal(dealt.view.house.cards[1], null);
   assert.ok(!JSON.stringify(dealt).includes('shoe'));
   ivy.ws.close();
+});
+
+test('two people can play Hold’em, and neither sees the other’s cards', async () => {
+  const [a, b] = await Promise.all([login('Jo'), login('Kit')]);
+  const jo = client(a.session, 'hdroom');
+  await jo.next((m) => m.t === 'room');
+  const kit = client(b.session, 'hdroom');
+  await kit.next((m) => m.t === 'room');
+  jo.send({ t: 'game', game: 'holdem' });
+  jo.send({ t: 'rules', rules: { hands: 10 } });
+  jo.send({ t: 'sit' });
+  kit.send({ t: 'sit' });
+  const room = await jo.next(roomWith((r) => r.game === 'holdem' && r.seats.length === 2 && r.rules.hands === 10));
+  assert.equal(room.room.maxSeats, 6);
+  jo.send({ t: 'start' });
+  const joGame = await jo.next((m) => m.t === 'game');
+  const kitGame = await kit.next((m) => m.t === 'game');
+  assert.equal(joGame.view.game, 'holdem');
+  assert.ok(joGame.view.players[0].cards.every(Boolean));
+  assert.deepEqual(joGame.view.players[1].cards, [null, null]);
+  assert.deepEqual(kitGame.view.players[0].cards, [null, null]);
+  assert.ok(!JSON.stringify(joGame).includes('deck'));
+  const turn = joGame.view.turn;
+  const [mover, waiter] = turn === 0 ? [jo, kit] : [kit, jo];
+  waiter.send({ t: 'act', action: { type: 'fold' } });
+  assert.equal((await waiter.next((m) => m.t === 'no')).error, 'It isn’t your turn.');
+  mover.send({ t: 'act', action: { type: 'raise', to: 25 } });
+  assert.equal((await mover.next((m) => m.t === 'no')).error, 'Raise to at least 40.');
+  mover.send({ t: 'act', action: { type: 'call' } });
+  const after = await waiter.next((m) => m.t === 'game' && m.view.turn === 1 - turn && m.view.legal.includes('check'));
+  assert.equal(after.view.pot, 40);
+  assert.equal(after.deadline.kind, 'turn');
+  jo.ws.close();
+  kit.ws.close();
 });
