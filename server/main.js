@@ -340,6 +340,17 @@ export async function startServer({ dev = false, port, env = process.env, static
     });
   }
 
+  // Render's free plan sleeps after 15 minutes without visitors, which ends
+  // games and makes the next person wait. Calling our own public address every
+  // 10 minutes goes through Render's front door, so it counts as a visitor.
+  const ownUrl = !dev && /^https:\/\/[a-z0-9.-]+$/i.test(env.RENDER_EXTERNAL_URL ?? '') ? env.RENDER_EXTERNAL_URL : null;
+  const keepAwake = ownUrl
+    ? setInterval(() => {
+        fetch(`${ownUrl}/api/health`, { signal: AbortSignal.timeout(20000) }).catch(() => {});
+      }, 10 * 60 * 1000)
+    : null;
+  if (ownUrl) log(`Keeping awake by calling ${ownUrl}/api/health every 10 minutes.`);
+
   const heartbeat = setInterval(() => {
     for (const ws of sockets) {
       if (!ws.isAlive) {
@@ -364,6 +375,7 @@ export async function startServer({ dev = false, port, env = process.env, static
     rooms,
     async close() {
       clearInterval(heartbeat);
+      clearInterval(keepAwake);
       rooms.stop();
       for (const ws of sockets) ws.terminate();
       server.closeAllConnections();
