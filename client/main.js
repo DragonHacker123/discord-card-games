@@ -5,6 +5,7 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
 import { startOnline } from '../games/jacks/ui.js';
 import { createFishTable } from '../games/gofish/table.js';
+import { createBlackjackTable } from '../games/blackjack/table.js';
 
 const inDiscord = new URLSearchParams(location.search).has('frame_id');
 // Inside Discord, everything goes through its proxy.
@@ -55,8 +56,10 @@ function showNotice(text, action) {
   notice.hidden = false;
   roomScreen.hidden = true;
   document.getElementById('game').hidden = true;
-  const fishRoot = document.getElementById('gofish');
-  if (fishRoot) fishRoot.hidden = true;
+  for (const id of ['gofish', 'blackjack']) {
+    const other = document.getElementById(id);
+    if (other) other.hidden = true;
+  }
 }
 
 const send = (message) => {
@@ -92,7 +95,16 @@ const fish = createFishTable({
   cardSvg: table.cardSvg,
   escapeHtml,
 });
-const tables = { jacks: table, gofish: fish };
+const blackjack = createBlackjackTable({
+  act: (action) => send({ t: 'act', action }),
+  away: (seat) => Boolean(state.room?.seats[seat]?.away),
+  isHost,
+  deal: () => send({ t: 'start' }),
+  lobby: () => send({ t: 'lobby' }),
+  cardSvg: table.cardSvg,
+  escapeHtml,
+});
+const tables = { jacks: table, gofish: fish, blackjack };
 const showing = () => tables[state.playing] ?? table;
 
 // The host can stop a game from the side of the table. It takes two presses.
@@ -210,6 +222,21 @@ function renderRoom() {
   setup.append(actions);
 
   if (room.game === 'jacks') setup.append(make('p', 'settings-summary', table.summary(room.rules)));
+  if (room.game === 'blackjack') {
+    if (host) {
+      const rounds = make('div', 'rounds-picker');
+      rounds.setAttribute('role', 'group');
+      rounds.setAttribute('aria-label', 'Hands in a game');
+      rounds.append(make('span', '', 'Hands'));
+      for (const count of [5, 10, 20]) {
+        const choice = button(String(count), () => send({ t: 'rules', rules: { rounds: count } }), 'btn btn-small');
+        choice.setAttribute('aria-pressed', String(room.rules.rounds === count));
+        rounds.append(choice);
+      }
+      setup.append(rounds);
+    }
+    setup.append(make('p', 'settings-summary', `${room.rules.rounds} hands. Everyone starts with 1,000 chips. Most chips wins.`));
+  }
   const hint = make('p', 'room-hint', hintText);
   hint.setAttribute('role', 'alert');
   setup.append(hint);
@@ -237,6 +264,7 @@ function onRoom(room) {
   if (wasPlaying || state.inGame) {
     table.close();
     fish.close();
+    blackjack.close();
     state.inGame = false;
     state.playing = null;
   }
@@ -247,7 +275,7 @@ function onGame(message) {
   state.inGame = true;
   roomScreen.hidden = true;
   notice.hidden = true;
-  const playing = message.view?.game === 'gofish' ? 'gofish' : 'jacks';
+  const playing = Object.hasOwn(tables, message.view?.game ?? '') ? message.view.game : 'jacks';
   if (state.playing && state.playing !== playing) showing().close();
   state.playing = playing;
   showing().update(message);

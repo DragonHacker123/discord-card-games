@@ -186,7 +186,7 @@ test('the host can switch the room to Go Fish and play it', async () => {
   const gil = client(a.session, 'fishroom');
   const first = await gil.next((m) => m.t === 'room');
   assert.equal(first.room.game, 'jacks');
-  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'gofish']);
+  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'blackjack', 'gofish']);
   const hal = client(b.session, 'fishroom');
   await hal.next((m) => m.t === 'room');
 
@@ -226,4 +226,32 @@ test('the host can switch the room to Go Fish and play it', async () => {
   assert.equal((await gil.next((m) => m.t === 'no', gil.seen.length)).error, 'Wait for this game to finish.');
   gil.ws.close();
   hal.ws.close();
+});
+
+test('one person can play Blackjack against the house', async () => {
+  const a = await login('Ivy');
+  const ivy = client(a.session, 'bjroom');
+  await ivy.next((m) => m.t === 'room');
+  ivy.send({ t: 'game', game: 'blackjack' });
+  ivy.send({ t: 'rules', rules: { rounds: 5, nonsense: true } });
+  const room = await ivy.next(roomWith((r) => r.game === 'blackjack' && r.rules.rounds === 5));
+  assert.deepEqual(room.room.rules, { rounds: 5 });
+  assert.equal(room.room.minSeats, 1);
+  ivy.send({ t: 'sit' });
+  await ivy.next(roomWith((r) => r.seats.length === 1));
+  ivy.send({ t: 'start' });
+  const first = await ivy.next((m) => m.t === 'game');
+  assert.equal(first.view.game, 'blackjack');
+  assert.deepEqual(first.view.legal, ['bet']);
+  assert.equal(first.deadline.kind, 'bet');
+  ivy.send({ t: 'act', action: { type: 'bet', amount: 15 } });
+  assert.equal((await ivy.next((m) => m.t === 'no')).error, 'That bet isn’t allowed.');
+  ivy.send({ t: 'act', action: { type: 'bet', amount: 50 } });
+  const dealt = await ivy.next((m) => m.t === 'game' && m.view.phase !== 'bet');
+  assert.equal(dealt.view.players[0].chips, 950);
+  assert.equal(dealt.view.players[0].hands[0].cards.length, 2);
+  // The hidden card stays hidden until the house plays or the hand is over.
+  if (dealt.view.phase === 'play') assert.equal(dealt.view.house.cards[1], null);
+  assert.ok(!JSON.stringify(dealt).includes('shoe'));
+  ivy.ws.close();
 });

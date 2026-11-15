@@ -1,0 +1,88 @@
+/* Blackjack. It borrows the leather table, seats, buttons and scores from the
+   Jacks stylesheet and adds the house, hands with totals, and chips. */
+
+.bj { margin-inline: auto; max-width: 1100px; padding-block: 16px; }
+.bj-table { --card-big: clamp(50px, min(13vw, 11vh), 96px); --card-small: clamp(34px, min(8vw, 7vh), 58px); }
+.bj-top { align-items: center; display: flex; gap: 6px; }
+.bj-round { color: var(--muted); font-size: 0.92rem; font-variant-numeric: tabular-nums; margin-right: auto; }
+
+.bj-house { --card-w: var(--card-big); align-items: center; align-self: center; border-radius: 8px; display: flex; flex-direction: column; gap: 5px; padding: 6px 12px 8px; }
+.bj-house.active { background: var(--leather-deep); box-shadow: 0 0 0 1.5px var(--brass); }
+.bj-house.active .seat-name { color: var(--brass); }
+
+.bj-seat { --card-w: var(--card-small); min-width: 110px; }
+.bj-me { --card-w: var(--card-big); }
+.bj-seat.is-out { opacity: 0.55; }
+.bj-seat .seat-head { align-items: baseline; gap: 8px; justify-content: space-between; }
+.bj-me .seat-head { justify-content: center; }
+.bj-chips { font-size: 0.92rem; font-variant-numeric: tabular-nums; font-weight: 800; }
+.bj-chips::before {
+  background: radial-gradient(circle, var(--brass) 0 32%, var(--on-brass) 34% 52%, var(--brass) 54%);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: "";
+  display: inline-block;
+  height: 0.85em;
+  margin-right: 4px;
+  vertical-align: -0.08em;
+  width: 0.85em;
+}
+.bj-hands { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; min-height: calc(var(--card-w) * 1.4 + 1.7rem); }
+.bj-hand { align-items: center; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; padding: 3px; }
+.bj-hand.is-active { box-shadow: 0 0 0 2px var(--brass); }
+.bj-cards { display: flex; justify-content: center; min-height: calc(var(--card-w) * 1.4); }
+.bj-card {
+  aspect-ratio: 5 / 7;
+  background: var(--ivory);
+  border-radius: calc(var(--card-w) * 0.08);
+  box-shadow: 0 2px 5px var(--shadow);
+  display: block;
+  flex: none;
+  overflow: hidden;
+  position: relative;
+  width: var(--card-w);
+}
+.bj-card.back-face { background-color: var(--back); }
+.bj-card + .bj-card { margin-left: calc(var(--card-w) * -0.56); }
+.bj-card.bj-slot { background: none; box-shadow: none; outline: 1px dashed var(--line); outline-offset: -1px; opacity: 0.6; }
+.bj-card.bj-slot + .bj-slot { margin-left: calc(var(--card-w) * 0.1); }
+.bj-card.is-new { animation: bj-deal 0.32s ease-out; }
+@keyframes bj-deal {
+  from { opacity: 0; translate: calc(var(--card-w) * 0.5) calc(var(--card-w) * -0.6); }
+  to { opacity: 1; translate: 0 0; }
+}
+.bj-tags { align-items: center; display: flex; flex-wrap: wrap; gap: 4px 8px; justify-content: center; min-height: 1.5rem; }
+.bj-total, .bj-outcome {
+  background: var(--leather-deep);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.3;
+  min-width: 2.1em;
+  padding: 0 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+.bj-total.is-blank { visibility: hidden; }
+.bj-outcome.is-win, .bj-outcome.is-blackjack { background: var(--brass); border-color: var(--brass); color: var(--on-brass); }
+.bj-outcome.is-lose, .bj-outcome.is-bust { border-color: var(--bad); color: var(--bad); }
+.bj-bet { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bj-note { color: var(--muted); font-size: 0.9rem; margin: 0; align-self: center; }
+
+.bj-bet-btn { font-variant-numeric: tabular-nums; min-width: 3.2em; }
+.bj-count { color: var(--brass); font-variant-numeric: tabular-nums; font-weight: 800; }
+.bj .result-row { grid-template-columns: minmax(56px, auto) minmax(0, 1fr) auto; }
+
+.rounds-picker { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; }
+.rounds-picker .btn[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-brass); }
+.rounds-picker span { color: var(--muted); font-size: 0.94rem; margin-right: 4px; }
+
+@media (max-width: 520px) {
+  .bj { padding-block: 0; }
+  .bj-seat { min-width: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bj-card.is-new { animation: none; }
+}

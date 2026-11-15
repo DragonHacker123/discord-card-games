@@ -4,7 +4,7 @@ Card games for a Discord Activity. The order is:
 
 1. Get Jacks right as a standalone test page. (Done)
 2. Put Jacks into the Discord Activity. **(Built and tested locally. Needs a Discord app: see `docs/SETUP.md`.)**
-3. Add Go Fish (**built; the host picks the game in the room**), then Blackjack and Texas Hold'em.
+3. Add Go Fish and Blackjack (**both built; the host picks the game in the room**), then Texas Hold'em.
 
 ## Layout
 
@@ -13,6 +13,7 @@ Card games for a Discord Activity. The order is:
 - `games/jacks/tutorial.js`: the scripted tutorial game, played on the real engine.
 - `games/jacks/ui.js`, `style.css`, `page.html`: the test page.
 - `tools/build-artifact.mjs`: inlines all of that into `dist/jacks.html`, which is what gets published.
+- `games/blackjack/`: Blackjack against the house for chips, with the same five files as Go Fish.
 - `games/gofish/`: Go Fish. `engine.js` (rules), `bots.js`, `dealer.js`, `table.js` (the screen, Activity only) and `style.css`. `server/rooms.js` lists the games a room can play in `GAMES`.
 - `games/jacks/dealer.js`: runs a game for a table: computer players, countdowns, and playing for people who leave.
 - `server/`: the game server. `rooms.js` is rooms and seats, `main.js` is sign-in and the network.

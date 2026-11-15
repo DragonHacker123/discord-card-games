@@ -9,6 +9,7 @@
 @import "@fontsource/im-fell-english-sc/latin-400.css";
 @import "../games/jacks/style.css";
 @import "../games/gofish/style.css";
+@import "../games/blackjack/style.css";
 
 /* What the test page gets from the viewer it runs in. */
 *, *::before, *::after { box-sizing: border-box; }

@@ -12,10 +12,13 @@ import { createDealer as createJacksDealer } from '../games/jacks/dealer.js';
 import * as jacks from '../games/jacks/engine.js';
 import { createDealer as createFishDealer } from '../games/gofish/dealer.js';
 import * as gofish from '../games/gofish/engine.js';
+import { createDealer as createBlackjackDealer } from '../games/blackjack/dealer.js';
+import * as blackjack from '../games/blackjack/engine.js';
 
 /** Every game a room can play. The room only needs these few things from each. */
 export const GAMES = {
   jacks: { name: 'Jacks', createDealer: createJacksDealer, normaliseRules: jacks.normaliseRules, defaults: jacks.DEFAULT_RULES, min: jacks.MIN_PLAYERS, max: jacks.MAX_PLAYERS },
+  blackjack: { name: 'Blackjack', createDealer: createBlackjackDealer, normaliseRules: blackjack.normaliseRules, defaults: blackjack.DEFAULT_RULES, min: blackjack.MIN_PLAYERS, max: blackjack.MAX_PLAYERS },
   gofish: { name: 'Go Fish', createDealer: createFishDealer, normaliseRules: gofish.normaliseRules, defaults: gofish.DEFAULT_RULES, min: gofish.MIN_PLAYERS, max: gofish.MAX_PLAYERS },
 };
 const GAME_LIST = Object.entries(GAMES).map(([id, game]) => ({ id, name: game.name, min: game.min, max: game.max }));
