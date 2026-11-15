@@ -180,3 +180,50 @@ test('too many messages at once closes the connection', async () => {
   for (let i = 0; i < 60; i++) spam.send({ t: 'sit' });
   assert.equal((await spam.closed).reason, 'rate');
 });
+
+test('the host can switch the room to Go Fish and play it', async () => {
+  const [a, b] = await Promise.all([login('Gil'), login('Hal')]);
+  const gil = client(a.session, 'fishroom');
+  const first = await gil.next((m) => m.t === 'room');
+  assert.equal(first.room.game, 'jacks');
+  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'gofish']);
+  const hal = client(b.session, 'fishroom');
+  await hal.next((m) => m.t === 'room');
+
+  hal.send({ t: 'game', game: 'gofish' });
+  assert.equal((await hal.next((m) => m.t === 'no')).error, 'Only the host can pick the game.');
+  gil.send({ t: 'game', game: '__proto__' });
+  assert.equal((await gil.next((m) => m.t === 'no')).error, 'Unknown game.');
+  gil.send({ t: 'game', game: 'gofish' });
+  const fishRoom = await gil.next(roomWith((room) => room.game === 'gofish'));
+  assert.equal(fishRoom.room.maxSeats, 6);
+
+  gil.send({ t: 'sit' });
+  hal.send({ t: 'sit' });
+  await gil.next(roomWith((room) => room.seats.length === 2));
+  gil.send({ t: 'start' });
+  const gilGame = await gil.next((m) => m.t === 'game');
+  const halGame = await hal.next((m) => m.t === 'game');
+  assert.equal(gilGame.view.game, 'gofish');
+  assert.equal(gilGame.view.players[0].hand.length + gilGame.view.players[0].books.length * 4, 7);
+  assert.equal(gilGame.view.players[1].hand, null);
+  assert.equal(halGame.view.players[0].hand, null);
+
+  // Whoever's turn it is asks; the other is refused.
+  const turn = gilGame.view.turn;
+  const [asker, askerGame, waiter] = turn === 0 ? [gil, gilGame, hal] : [hal, halGame, gil];
+  waiter.send({ t: 'act', action: { type: 'ask', target: turn, rank: 'A' } });
+  assert.equal((await waiter.next((m) => m.t === 'no', waiter.seen.length)).error, 'It isn’t your turn.');
+  const from = asker.seen.length;
+  asker.send({ t: 'act', action: { type: 'ask', target: 1 - turn, rank: askerGame.view.players[turn].hand[0].rank } });
+  const after = await asker.next((m) => m.t === 'game' && m.events.some((event) => event.type === 'asked'), from);
+  assert.ok(after.view.last);
+  // The other player never learns a fished card.
+  const seenByWaiter = await waiter.next((m) => m.t === 'game' && m.events.some((event) => event.type === 'asked'));
+  for (const event of seenByWaiter.events) if (event.type === 'goFish' && !event.lucky) assert.equal(event.card, null);
+
+  gil.send({ t: 'game', game: 'jacks' });
+  assert.equal((await gil.next((m) => m.t === 'no', gil.seen.length)).error, 'Wait for this game to finish.');
+  gil.ws.close();
+  hal.ws.close();
+});

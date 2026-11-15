@@ -8,8 +8,17 @@
 //   { t: 'game', id, view, events, deadline }        one player's view of the table
 //   { t: 'no', error }                               your last message was refused
 
-import { createDealer } from '../games/jacks/dealer.js';
-import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, normaliseRules } from '../games/jacks/engine.js';
+import { createDealer as createJacksDealer } from '../games/jacks/dealer.js';
+import * as jacks from '../games/jacks/engine.js';
+import { createDealer as createFishDealer } from '../games/gofish/dealer.js';
+import * as gofish from '../games/gofish/engine.js';
+
+/** Every game a room can play. The room only needs these few things from each. */
+export const GAMES = {
+  jacks: { name: 'Jacks', createDealer: createJacksDealer, normaliseRules: jacks.normaliseRules, defaults: jacks.DEFAULT_RULES, min: jacks.MIN_PLAYERS, max: jacks.MAX_PLAYERS },
+  gofish: { name: 'Go Fish', createDealer: createFishDealer, normaliseRules: gofish.normaliseRules, defaults: gofish.DEFAULT_RULES, min: gofish.MIN_PLAYERS, max: gofish.MAX_PLAYERS },
+};
+const GAME_LIST = Object.entries(GAMES).map(([id, game]) => ({ id, name: game.name, min: game.min, max: game.max }));
 
 export const LIMITS = {
   rooms: 500,
@@ -33,9 +42,11 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
       host: room.host,
       playing: Boolean(room.dealer),
       finished: Boolean(room.dealer?.finished()),
+      game: room.game,
+      games: GAME_LIST,
       rules: room.rules,
-      maxSeats: MAX_PLAYERS,
-      minSeats: MIN_PLAYERS,
+      maxSeats: GAMES[room.game].max,
+      minSeats: GAMES[room.game].min,
       seats: room.seats.map((seat, index) => ({
         id: seat.id,
         name: seat.name,
@@ -77,7 +88,7 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
   function startGame(room) {
     room.dealer?.stop();
     room.gameId = nextGameId++;
-    room.dealer = createDealer({
+    room.dealer = GAMES[room.game].createDealer({
       players: room.seats.map((seat) => ({ id: seat.id, name: seat.name, bot: Boolean(seat.bot) })),
       rules: room.rules,
       random,
@@ -145,7 +156,7 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
     sit(room, member) {
       if (room.dealer) return 'Wait for this game to finish.';
       if (seatOf(room, member.user.id) !== -1) return null;
-      if (room.seats.length >= MAX_PLAYERS) return 'The table is full.';
+      if (room.seats.length >= GAMES[room.game].max) return 'The table is full.';
       room.seats.push({ id: member.user.id, name: member.user.name, avatar: member.user.avatar ?? null });
       return null;
     },
@@ -158,7 +169,7 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
     addBot(room, member) {
       if (member.user.id !== room.host) return 'Only the host can do that.';
       if (room.dealer) return 'Wait for this game to finish.';
-      if (room.seats.length >= MAX_PLAYERS) return 'The table is full.';
+      if (room.seats.length >= GAMES[room.game].max) return 'The table is full.';
       const name = BOT_NAMES.find((candidate) => !room.seats.some((seat) => seat.bot && seat.name === candidate));
       if (!name) return 'The table is full.';
       room.seats.push({ id: `bot-${name.toLowerCase()}`, name, bot: true });
@@ -173,14 +184,27 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
     },
     rules(room, member, message) {
       if (member.user.id !== room.host) return 'Only the host can change the settings.';
-      room.rules = normaliseRules(message.rules);
+      room.rules = GAMES[room.game].normaliseRules(message.rules);
+      return null;
+    },
+    game(room, member, message) {
+      if (member.user.id !== room.host) return 'Only the host can pick the game.';
+      if (room.dealer) return 'Wait for this game to finish.';
+      const id = typeof message.game === 'string' && Object.hasOwn(GAMES, message.game) ? message.game : null;
+      if (!id) return 'Unknown game.';
+      if (id === room.game) return null;
+      if (room.seats.length > GAMES[id].max) return `${GAMES[id].name} takes up to ${GAMES[id].max} players.`;
+      room.savedRules[room.game] = room.rules;
+      room.game = id;
+      room.rules = room.savedRules[id] ?? GAMES[id].normaliseRules(GAMES[id].defaults);
       return null;
     },
     start(room, member) {
       if (member.user.id !== room.host) return 'Only the host can deal.';
       if (room.dealer && !room.dealer.finished()) return 'A game is already going.';
       if (room.dealer) room.seats = room.seats.filter((seat) => seat.bot || room.members.get(seat.id)?.send);
-      if (room.seats.length < MIN_PLAYERS) return `Jacks needs at least ${MIN_PLAYERS} players.`;
+      if (room.seats.length < GAMES[room.game].min) return `${GAMES[room.game].name} needs at least ${GAMES[room.game].min} players.`;
+      if (room.seats.length > GAMES[room.game].max) return `${GAMES[room.game].name} takes up to ${GAMES[room.game].max} players.`;
       if (!room.seats.some((seat) => !seat.bot)) return 'Someone has to sit down first.';
       startGame(room);
       return undefined;
@@ -209,7 +233,7 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
       let room = rooms.get(roomId);
       if (!room) {
         if (rooms.size >= caps.rooms) return { error: 'full' };
-        room = { id: roomId, members: new Map(), seats: [], host: user.id, rules: normaliseRules(DEFAULT_RULES), dealer: null, gameId: 0, emptyTimer: null, lastAway: '' };
+        room = { id: roomId, members: new Map(), seats: [], host: user.id, game: 'jacks', savedRules: {}, rules: jacks.normaliseRules(jacks.DEFAULT_RULES), dealer: null, gameId: 0, emptyTimer: null, lastAway: '' };
         rooms.set(roomId, room);
       }
       let member = room.members.get(user.id);
@@ -252,6 +276,8 @@ export function createRooms({ random = Math.random, clock, timeouts, limits = {}
         leave() {
           if (member.send !== mine) return;
           member.send = null;
+          // The room may already have been closed (the server is shutting down).
+          if (rooms.get(room.id) !== room) return;
           member.replaced = null;
           member.goneTimer = timer.setTimeout(() => gone(room, member), caps.goneMs);
           if (![...room.members.values()].some((other) => other.send)) {

@@ -1,0 +1,91 @@
+/* Go Fish. It borrows the leather table, seats, buttons and scores from the
+   Jacks stylesheet and adds a fanned hand, books and the draw pile. */
+
+.fish { margin-inline: auto; max-width: 1100px; padding-block: 16px; }
+.fish-table { --card-w: clamp(52px, min(14vw, 12vh), 104px); }
+.fish-top { display: flex; gap: 6px; justify-content: flex-end; }
+
+.fish-opp {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  display: block;
+  font: inherit;
+  min-width: 120px;
+  text-align: left;
+}
+.fish-opp.is-out { opacity: 0.55; }
+.fish-opp.can-ask { cursor: pointer; outline: 2.5px solid var(--brass); outline-offset: -1px; }
+.fish-opp.can-ask:hover, .fish-opp.can-ask:focus-visible { background: var(--leather-deep); outline-color: var(--good); }
+.fish-opp-body { align-items: center; display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.fish-back { --card-w: 26px; aspect-ratio: 5 / 7; border-radius: 3px; display: block; flex: none; position: relative; width: 26px; }
+.fish-back::after { display: none; }
+.fish-count { font-size: 1.1rem; font-variant-numeric: tabular-nums; font-weight: 800; }
+
+.fish-books { display: flex; flex-wrap: wrap; gap: 3px; }
+.fish-book {
+  background: var(--ivory);
+  border-radius: 3px;
+  box-shadow: 1px 1px 0 var(--line), 2px 2px 0 var(--ivory), 3px 3px 0 var(--line);
+  color: var(--ink);
+  font: 800 0.86rem/1 var(--card-type);
+  margin: 0 3px 3px 0;
+  min-width: 1.5em;
+  padding: 5px 3px;
+  text-align: center;
+}
+
+.fish-pile {
+  --card-w: var(--card-pile);
+  aspect-ratio: 5 / 7;
+  border-radius: calc(var(--card-pile) * 0.08);
+  box-shadow: 2px 2px 0 var(--ivory), 4px 4px 0 var(--back), 6px 8px 12px var(--shadow);
+  position: relative;
+  width: var(--card-pile);
+}
+.fish-pile.is-empty { box-shadow: none; outline: 1px dashed var(--line); outline-offset: -1px; }
+.fish-last { flex: 0 1 420px; margin: 0; min-height: 1.4em; text-wrap: balance; }
+
+.fish-me { align-items: center; display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
+.fish-hand { display: flex; flex-wrap: wrap; gap: calc(var(--card-w) * 0.5) calc(var(--card-w) * 0.14); justify-content: center; padding-top: calc(var(--card-w) * 0.16); }
+.fish-group {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: calc(var(--card-w) * 0.08);
+  color: inherit;
+  display: flex;
+  padding: 0;
+  transition: translate 0.15s;
+}
+.fish-group.can-pick { cursor: pointer; }
+.fish-group.can-pick:hover, .fish-group.can-pick:focus-visible { translate: 0 calc(var(--card-w) * -0.06); }
+.fish-group.is-selected { outline: 2.5px solid var(--brass); outline-offset: 3px; translate: 0 calc(var(--card-w) * -0.14); }
+.fish-card {
+  aspect-ratio: 5 / 7;
+  background: var(--ivory);
+  border-radius: calc(var(--card-w) * 0.08);
+  box-shadow: 0 2px 5px var(--shadow);
+  display: block;
+  overflow: hidden;
+  width: var(--card-w);
+}
+.fish-card + .fish-card { margin-left: calc(var(--card-w) * -0.66); }
+.fish-card.is-new { animation: fish-new 2.4s ease-out; }
+@keyframes fish-new {
+  0%, 60% { box-shadow: 0 0 0 3px var(--good), 0 2px 5px var(--shadow); translate: 0 calc(var(--card-w) * -0.1); }
+  100% { box-shadow: 0 2px 5px var(--shadow); translate: 0 0; }
+}
+.fish-empty { color: var(--muted); margin: 0; }
+
+.game-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.game-picker .btn[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-brass); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fish-card.is-new { animation: none; box-shadow: 0 0 0 3px var(--good); }
+  .fish-group { transition: none; }
+}
+
+/* Scores: name, books, count on one line at every width. */
+.fish .result-row { grid-template-columns: minmax(56px, auto) minmax(0, 1fr) auto; }

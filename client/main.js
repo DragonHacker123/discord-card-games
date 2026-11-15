@@ -4,6 +4,7 @@
 
 import { DiscordSDK } from '@discord/embedded-app-sdk';
 import { startOnline } from '../games/jacks/ui.js';
+import { createFishTable } from '../games/gofish/table.js';
 
 const inDiscord = new URLSearchParams(location.search).has('frame_id');
 // Inside Discord, everything goes through its proxy.
@@ -19,6 +20,7 @@ const state = {
   retries: 0,
   stopped: false,
   inGame: false,
+  playing: null, // which game's table is showing: 'jacks' or 'gofish'
   endArmed: false,
 };
 
@@ -48,11 +50,13 @@ app.prepend(notice, roomScreen);
 
 function showNotice(text, action) {
   notice.textContent = '';
-  notice.append(make('h1', '', 'Jacks'), make('p', '', text));
+  notice.append(make('h1', '', 'Card Games'), make('p', '', text));
   if (action) notice.append(action);
   notice.hidden = false;
   roomScreen.hidden = true;
   document.getElementById('game').hidden = true;
+  const fishRoot = document.getElementById('gofish');
+  if (fishRoot) fishRoot.hidden = true;
 }
 
 const send = (message) => {
@@ -78,6 +82,18 @@ const table = startOnline({
     if (isHost() && !state.room.playing) send({ t: 'rules', rules });
   },
 });
+
+const fish = createFishTable({
+  act: (action) => send({ t: 'act', action }),
+  away: (seat) => Boolean(state.room?.seats[seat]?.away),
+  isHost,
+  deal: () => send({ t: 'start' }),
+  lobby: () => send({ t: 'lobby' }),
+  cardSvg: table.cardSvg,
+  escapeHtml,
+});
+const tables = { jacks: table, gofish: fish };
+const showing = () => tables[state.playing] ?? table;
 
 // The host can stop a game from the side of the table. It takes two presses.
 const endButton = button('End game', () => {
@@ -127,11 +143,12 @@ function renderRoom() {
   const { room, me } = state;
   const host = isHost();
   const seated = room.seats.some((seat) => seat.id === me.id);
+  const gameName = room.games.find((entry) => entry.id === room.game)?.name ?? 'Jacks';
   const hostName = [...room.seats, ...room.watching].find((person) => person.id === room.host)?.name ?? 'the host';
 
   const main = make('div', 'lobby-main');
   const hero = make('div', 'hero');
-  hero.append(make('h1', 'wordmark', 'Jacks'));
+  hero.append(make('h1', 'wordmark', gameName));
   const hand = make('div', 'hero-hand');
   hand.setAttribute('aria-hidden', 'true');
   hand.innerHTML = [null, null, { rank: 'K', suit: 'H' }, { rank: '7', suit: 'C' }]
@@ -140,6 +157,17 @@ function renderRoom() {
   hero.append(hand);
 
   const setup = make('div', 'setup');
+  if (host) {
+    const picker = make('div', 'game-picker');
+    picker.setAttribute('role', 'group');
+    picker.setAttribute('aria-label', 'Game');
+    for (const entry of room.games) {
+      const choice = button(entry.name, () => send({ t: 'game', game: entry.id }));
+      choice.setAttribute('aria-pressed', String(entry.id === room.game));
+      picker.append(choice);
+    }
+    setup.append(picker);
+  }
   setup.append(make('p', 'room-heading', `At the table (${room.seats.length} of ${room.maxSeats})`));
   const list = make('ul', 'room-seats');
   room.seats.forEach((seat, index) => {
@@ -175,12 +203,13 @@ function renderRoom() {
   if (host) {
     const add = button('Add a computer player', () => send({ t: 'addBot' }), 'btn btn-large');
     add.disabled = full;
-    actions.append(add, button('Settings', () => table.openSettings(), 'btn btn-large'));
+    actions.append(add);
+    if (room.game === 'jacks') actions.append(button('Settings', () => table.openSettings(), 'btn btn-large'));
   }
-  actions.append(button('Rules', () => table.openRules(), 'btn btn-large'));
+  actions.append(button('Rules', () => tables[room.game].openRules(), 'btn btn-large'));
   setup.append(actions);
 
-  setup.append(make('p', 'settings-summary', table.summary(room.rules)));
+  if (room.game === 'jacks') setup.append(make('p', 'settings-summary', table.summary(room.rules)));
   const hint = make('p', 'room-hint', hintText);
   hint.setAttribute('role', 'alert');
   setup.append(hint);
@@ -198,16 +227,18 @@ function renderRoom() {
 function onRoom(room) {
   const wasPlaying = state.room?.playing;
   state.room = room;
-  table.setSettings(room.rules);
+  if (room.game === 'jacks') table.setSettings(room.rules);
   endButton.hidden = !isHost();
   if (room.playing) {
     roomScreen.hidden = true;
-    if (state.inGame) table.redraw();
+    if (state.inGame) showing().redraw();
     return;
   }
   if (wasPlaying || state.inGame) {
     table.close();
+    fish.close();
     state.inGame = false;
+    state.playing = null;
   }
   renderRoom();
 }
@@ -216,13 +247,16 @@ function onGame(message) {
   state.inGame = true;
   roomScreen.hidden = true;
   notice.hidden = true;
-  table.update(message);
+  const playing = message.view?.game === 'gofish' ? 'gofish' : 'jacks';
+  if (state.playing && state.playing !== playing) showing().close();
+  state.playing = playing;
+  showing().update(message);
 }
 
 /* ---------- The connection ---------- */
 
 const FINAL = {
-  replaced: 'You opened Jacks somewhere else, so this one has stopped.',
+  replaced: 'You opened the game somewhere else, so this one has stopped.',
   full: 'This room is full.',
   'not-in-activity': 'Discord says you aren’t in this activity. Close it and open it again.',
   rate: 'Too many messages at once. Reload to carry on.',
@@ -249,7 +283,7 @@ function connect() {
     } else if (message.t === 'room') onRoom(message.room);
     else if (message.t === 'game') onGame(message);
     else if (message.t === 'no') {
-      if (state.inGame) table.refuse(message.error);
+      if (state.inGame) showing().refuse(message.error);
       else if (state.room) showRoomHint(message.error);
     } else if (message.t === 'error') {
       if (message.code === 'bad-session') {
@@ -320,7 +354,7 @@ async function signIn() {
 }
 
 function failed(error) {
-  console.error('Jacks: sign-in failed', error);
+  console.error('Card Games: sign-in failed', error);
   if (error?.message === 'outside-discord') showNotice('Open this from the Activities button in a Discord voice channel.');
   else showNotice('Couldn’t sign you in.', button('Try again', () => location.reload(), 'btn btn-primary'));
 }

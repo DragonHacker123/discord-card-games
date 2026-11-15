@@ -37,7 +37,7 @@ const page = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="jacks-mode" content="online">
-<title>Jacks</title>
+<title>Card Games</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>

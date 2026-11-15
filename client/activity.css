@@ -8,6 +8,7 @@
 @import "@fontsource/alegreya/latin-800.css";
 @import "@fontsource/im-fell-english-sc/latin-400.css";
 @import "../games/jacks/style.css";
+@import "../games/gofish/style.css";
 
 /* What the test page gets from the viewer it runs in. */
 *, *::before, *::after { box-sizing: border-box; }
@@ -57,3 +58,17 @@ img { max-width: 100%; }
 .room-seat .btn { flex: none; }
 .room-heading { font-weight: 700; margin: 0; }
 .room-hint { color: var(--bad); margin: 0; min-height: 1.4em; }
+
+/* Phones: keep clear of the notch and Discord's own bars. Discord's values
+   come first; env() covers iOS and testing outside Discord. */
+.app {
+  padding-bottom: max(16px, var(--discord-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  padding-left: max(16px, var(--discord-safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  padding-right: max(16px, var(--discord-safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  padding-top: max(16px, var(--discord-safe-area-inset-top, env(safe-area-inset-top, 0px)));
+}
+@media (max-width: 520px) {
+  .app { padding-left: max(8px, var(--discord-safe-area-inset-left, env(safe-area-inset-left, 0px))); padding-right: max(8px, var(--discord-safe-area-inset-right, env(safe-area-inset-right, 0px))); }
+  .fish { padding-block: 0; }
+  .setup-actions .btn-large { flex: 1 1 auto; }
+}

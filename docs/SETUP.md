@@ -1,4 +1,4 @@
-# Getting Jacks into Discord
+# Getting the card games into Discord
 
 The game server and the Discord client are built and tested on this PC. What's left needs your Discord account, so only you can do it. It takes about 15 minutes.
 
@@ -42,7 +42,8 @@ To test on your own PC instead, `npm run dev` still works (see above).
 
 1. In the developer portal, open **Activities** and switch **Enable Activities** on. **(check)**
 2. Under **URL Mappings**, set the root mapping `/` to your Render address without the `https://` (for example `discord-card-games.onrender.com`).
-3. Open **Installation** and use the install link to add the app to your server.
+3. Still under **Activities**, open **Settings**. Under **Supported Platforms**, tick **iOS** and **Android** as well as **Web**, then save. Until you do, the Activity only opens on a computer.
+4. Open **Installation** and use the install link to add the app to your server.
 
 Until Discord verifies the app, it only works in servers with fewer than 25 members, and only you and people you add as **App Testers** can see it (up to 50). **(check)** Verification is a separate form in the portal for later.
 
@@ -50,7 +51,7 @@ Until Discord verifies the app, it only works in servers with fewer than 25 memb
 
 Join a voice channel, press the Activities button (the rocket), and pick your app. Everyone who opens it in that channel lands in the same room.
 
-- The first person in is the host. The host adds computer players, changes settings and deals.
+- The first person in is the host. The host picks the game (Jacks or Go Fish), adds computer players, changes settings and deals.
 - Anyone who opens it mid-game watches until the next deal.
 - If someone closes Discord and isn't back within 10 seconds, they forfeit: their cards go face down to the bottom of the discard pile, play skips them, and they can't win. If they come back, they watch until the next deal. If only one player is left, the game ends and they win.
 - Someone who doesn't move for 45 seconds gets played for until they next press something.
