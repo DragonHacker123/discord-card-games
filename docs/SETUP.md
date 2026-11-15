@@ -21,7 +21,7 @@ Open http://localhost:5200 in two or three browser tabs. Each tab is a different
 
 ## 2. Put the server on Render
 
-The code is in a private GitHub repo: https://github.com/DragonHacker123/discord-card-games. Render builds and runs it from there, using the settings in `render.yaml` (free plan, Frankfurt, one copy only).
+The code is in a public GitHub repo (no secrets are in it): https://github.com/DragonHacker123/discord-card-games. Render builds and runs it from there, using the settings in `render.yaml` (free plan, Frankfurt, one copy only).
 
 1. Sign up at https://render.com. Signing up with GitHub is easiest.
 2. In the Render dashboard, choose **New**, then **Blueprint**.
@@ -31,7 +31,7 @@ The code is in a private GitHub repo: https://github.com/DragonHacker123/discord
 
 Things to know about the free plan:
 
-- It sleeps after 15 minutes with nobody connected. The next person to open the game waits about a minute while it wakes. If Discord shows an error the first time, wait a minute and open it again.
+- It sleeps after 15 minutes without visitors. To stop that, the server pings itself every 10 minutes, and a GitHub Action (`.github/workflows/keep-awake.yml`) pings it too. If it was asleep anyway, the next person waits about a minute; if Discord shows an error, wait a minute and open it again.
 - A game in progress keeps it awake.
 - Whenever it sleeps, restarts or updates, any game in progress ends.
 - When the code changes, it's pushed to GitHub and Render updates itself.
