@@ -1,0 +1,6 @@
+/* Rummy. Everything else comes from the shared styles. */
+.melds { --card-w: var(--card-small); align-items: center; display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; min-height: calc(var(--card-small) * 1.4 + 8px); }
+.meld { appearance: none; background: none; border: 0; border-radius: 6px; color: inherit; display: block; font: inherit; padding: 4px; }
+button.meld { cursor: pointer; }
+.meld.can-add { background: var(--leather-deep); box-shadow: 0 0 0 2px var(--brass); }
+.rm-sort { display: block; margin: 8px auto 0; }

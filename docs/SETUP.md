@@ -51,7 +51,8 @@ Until Discord verifies the app, it only works in servers with fewer than 25 memb
 
 Join a voice channel, press the Activities button (the rocket), and pick your app. Everyone who opens it in that channel lands in the same room.
 
-- The first person in is the host. The host picks the game (Jacks, Blackjack, Texas Hold’em or Go Fish), adds computer players, changes settings and deals.
+- The first person in is the host. The host picks the game (Jacks, Blackjack, Texas Hold’em, Go Fish, Crazy Eights, Rummy, Hearts, Spades or Solitaire), adds computer players, changes settings and deals.
+- Hearts and Spades need exactly four at the table, so add computer players to fill it. In those two games, the computer plays out the cards of anyone who leaves.
 - Anyone who opens it mid-game watches until the next deal.
 - If someone closes Discord and isn't back within 10 seconds, they forfeit: their cards go face down to the bottom of the discard pile, play skips them, and they can't win. If they come back, they watch until the next deal. If only one player is left, the game ends and they win.
 - Someone who doesn't move for 45 seconds gets played for until they next press something.

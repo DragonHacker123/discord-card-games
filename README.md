@@ -5,6 +5,7 @@ Card games for a Discord Activity. The order is:
 1. Get Jacks right as a standalone test page. (Done)
 2. Put Jacks into the Discord Activity. **(Built and tested locally. Needs a Discord app: see `docs/SETUP.md`.)**
 3. Add Go Fish, Blackjack and Texas Hold'em. **(All built; the host picks the game in the room.)**
+4. Add Crazy Eights, Rummy, Hearts, Spades and Solitaire. **(All built.)**
 
 ## Layout
 
@@ -16,6 +17,8 @@ Card games for a Discord Activity. The order is:
 - `games/blackjack/`: Blackjack against the house for chips, with the same five files as Go Fish.
 - `games/holdem/`: no-limit Texas Hold'em for chips, with the same five files as Go Fish.
 - `games/gofish/`: Go Fish. `engine.js` (rules), `bots.js`, `dealer.js`, `table.js` (the screen, Activity only) and `style.css`. `server/rooms.js` lists the games a room can play in `GAMES`.
+- `games/crazy8/`, `games/rummy/`, `games/hearts/`, `games/spades/`, `games/solitaire/`: the newer games. Each has the same five files, but they lean on `games/shared/`.
+- `games/shared/`: what the newer games have in common. `cards.js` (deck and shuffle), `dealer.js` (one dealer for any game played in turns; Solitaire has its own because everyone plays at once), `tricks.js` (who wins a trick), `shell.js` and `trick-table.js` (the parts of the screen every table has), `style.css`, and `testing.js` (a fake clock and a whole-game player for the tests).
 - `games/jacks/dealer.js`: runs a game for a table: computer players, countdowns, and playing for people who leave.
 - `server/`: the game server. `rooms.js` is rooms and seats, `main.js` is sign-in and the network.
 - `client/`: the Discord page. It reuses `ui.js` through `startOnline()`.

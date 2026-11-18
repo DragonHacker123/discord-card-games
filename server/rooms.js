@@ -16,13 +16,29 @@ import { createDealer as createBlackjackDealer } from '../games/blackjack/dealer
 import * as blackjack from '../games/blackjack/engine.js';
 import { createDealer as createHoldemDealer } from '../games/holdem/dealer.js';
 import * as holdem from '../games/holdem/engine.js';
+import { createDealer as createCrazyDealer } from '../games/crazy8/dealer.js';
+import * as crazy8 from '../games/crazy8/engine.js';
+import { createDealer as createHeartsDealer } from '../games/hearts/dealer.js';
+import * as hearts from '../games/hearts/engine.js';
+import { createDealer as createSpadesDealer } from '../games/spades/dealer.js';
+import * as spades from '../games/spades/engine.js';
+import { createDealer as createRummyDealer } from '../games/rummy/dealer.js';
+import * as rummy from '../games/rummy/engine.js';
+import { createDealer as createSolitaireDealer } from '../games/solitaire/dealer.js';
+import * as solitaire from '../games/solitaire/engine.js';
 
 /** Every game a room can play. The room only needs these few things from each. */
+const entry = (name, createDealer, engine) => ({ name, createDealer, normaliseRules: engine.normaliseRules, defaults: engine.DEFAULT_RULES, min: engine.MIN_PLAYERS, max: engine.MAX_PLAYERS });
 export const GAMES = {
-  jacks: { name: 'Jacks', createDealer: createJacksDealer, normaliseRules: jacks.normaliseRules, defaults: jacks.DEFAULT_RULES, min: jacks.MIN_PLAYERS, max: jacks.MAX_PLAYERS },
-  blackjack: { name: 'Blackjack', createDealer: createBlackjackDealer, normaliseRules: blackjack.normaliseRules, defaults: blackjack.DEFAULT_RULES, min: blackjack.MIN_PLAYERS, max: blackjack.MAX_PLAYERS },
-  holdem: { name: 'Texas Hold’em', createDealer: createHoldemDealer, normaliseRules: holdem.normaliseRules, defaults: holdem.DEFAULT_RULES, min: holdem.MIN_PLAYERS, max: holdem.MAX_PLAYERS },
-  gofish: { name: 'Go Fish', createDealer: createFishDealer, normaliseRules: gofish.normaliseRules, defaults: gofish.DEFAULT_RULES, min: gofish.MIN_PLAYERS, max: gofish.MAX_PLAYERS },
+  jacks: entry('Jacks', createJacksDealer, jacks),
+  blackjack: entry('Blackjack', createBlackjackDealer, blackjack),
+  holdem: entry('Texas Hold’em', createHoldemDealer, holdem),
+  gofish: entry('Go Fish', createFishDealer, gofish),
+  crazy8: entry('Crazy Eights', createCrazyDealer, crazy8),
+  rummy: entry('Rummy', createRummyDealer, rummy),
+  hearts: entry('Hearts', createHeartsDealer, hearts),
+  spades: entry('Spades', createSpadesDealer, spades),
+  solitaire: entry('Solitaire', createSolitaireDealer, solitaire),
 };
 const GAME_LIST = Object.entries(GAMES).map(([id, game]) => ({ id, name: game.name, min: game.min, max: game.max }));
 

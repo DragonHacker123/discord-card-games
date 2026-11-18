@@ -11,6 +11,10 @@
 @import "../games/gofish/style.css";
 @import "../games/blackjack/style.css";
 @import "../games/holdem/style.css";
+@import "../games/shared/style.css";
+@import "../games/crazy8/style.css";
+@import "../games/rummy/style.css";
+@import "../games/solitaire/style.css";
 
 /* What the test page gets from the viewer it runs in. */
 *, *::before, *::after { box-sizing: border-box; }

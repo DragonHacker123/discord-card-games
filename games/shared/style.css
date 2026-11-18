@@ -1,0 +1,121 @@
+/* Styles the newer games share. They borrow the leather table, seats, buttons
+   and scores from the Jacks stylesheet. */
+
+.shell { margin-inline: auto; max-width: 1100px; padding-block: 16px; }
+.shell .table { --card-big: clamp(46px, min(17vw, 11vh), 92px); --card-mid: clamp(40px, min(13vw, 9vh), 78px); --card-small: clamp(26px, min(6.5vw, 6vh), 48px); --card-w: var(--card-big); }
+.shell-top { align-items: center; display: flex; gap: 6px; }
+.shell-round { color: var(--muted); font-size: 0.92rem; font-variant-numeric: tabular-nums; margin-right: auto; }
+.shell-count { color: var(--brass); font-variant-numeric: tabular-nums; font-weight: 800; }
+.shell-detail { color: var(--muted); font-size: 0.88rem; min-width: 0; }
+.shell .result-row { grid-template-columns: minmax(56px, auto) minmax(0, 1fr) auto; }
+.shell .opponents { gap: 6px 8px; }
+.shell .seat { --card-w: var(--card-small); min-width: 96px; }
+.shell .seat-me { --card-w: var(--card-big); width: 100%; }
+.shell .me { align-self: stretch; }
+.shell .seat.is-out { opacity: 0.55; }
+.shell .seat-head { align-items: baseline; gap: 6px; }
+.shell .seat-me .seat-head { justify-content: center; }
+.shell-middle { align-items: center; display: flex; flex-wrap: wrap; gap: 10px clamp(12px, 3vw, 30px); justify-content: center; }
+.shell-note { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+/* A playing card, as a plain block or as a button. */
+.pc {
+  appearance: none;
+  aspect-ratio: 5 / 7;
+  background: var(--ivory);
+  border: 0;
+  border-radius: calc(var(--card-w) * 0.08);
+  box-shadow: 0 2px 5px var(--shadow);
+  color: inherit;
+  display: block;
+  flex: none;
+  font: inherit;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  transition: translate 0.15s;
+  width: var(--card-w);
+}
+.pc.back-face { background-color: var(--back); border: calc(var(--card-w) * 0.055) solid var(--ivory); }
+.pc.slot { background: none; box-shadow: none; opacity: 0.55; outline: 1px dashed var(--line); outline-offset: -1px; }
+button.pc { cursor: pointer; }
+button.pc:disabled { cursor: default; }
+.pc.can-play { box-shadow: 0 0 0 2.5px var(--brass), 0 2px 5px var(--shadow); }
+button.pc.can-play:hover, button.pc.can-play:focus-visible, button.pc.can-pick:hover, button.pc.can-pick:focus-visible { translate: 0 calc(var(--card-w) * -0.1); }
+.pc.is-picked { box-shadow: 0 0 0 3px var(--good), 0 2px 5px var(--shadow); translate: 0 calc(var(--card-w) * -0.16); }
+.pc.is-dim { filter: brightness(0.62); }
+.pc.is-new { animation: pc-new 0.34s ease-out; }
+@keyframes pc-new {
+  from { opacity: 0; translate: 0 calc(var(--card-w) * -0.5); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Your hand, in a fan. Cards sit side by side when there's room and overlap
+   just enough to fit when there isn't. --n is how many cards are in the row. */
+.fan-rows { container-type: inline-size; display: flex; flex-direction: column; gap: calc(var(--card-w) * 0.12); width: 100%; }
+.fan { display: flex; justify-content: center; padding-top: calc(var(--card-w) * 0.18); }
+.fan .pc + .pc { margin-left: min(calc(var(--card-w) * 0.08), calc((100cqw - var(--card-w) * var(--n)) / max(1, var(--n) - 1))); }
+
+/* A small pile of face-up cards that overlap by a fixed amount and wrap. */
+.stack { display: flex; flex-wrap: wrap; justify-content: center; padding-left: calc(var(--card-w) * 0.6); row-gap: 3px; }
+.stack .pc { margin-left: calc(var(--card-w) * -0.6); }
+
+/* A count of face-down cards: a small card back and a number. */
+.held-count { align-items: center; display: inline-flex; font-size: 1.05rem; font-variant-numeric: tabular-nums; font-weight: 800; gap: 6px; }
+.held-count::before {
+  background-color: var(--back);
+  background-image: repeating-linear-gradient(45deg, var(--back-line) 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, var(--back-line) 0 1px, transparent 1px 5px);
+  border: 2px solid var(--ivory);
+  border-radius: 3px;
+  box-sizing: border-box;
+  content: "";
+  height: 34px;
+  width: 24px;
+}
+
+.pill {
+  background: var(--leather-deep);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.pill.is-win { background: var(--brass); border-color: var(--brass); color: var(--on-brass); }
+.pill.is-quiet { color: var(--muted); font-weight: 500; }
+.pills { align-items: center; display: flex; flex-wrap: wrap; gap: 4px 6px; justify-content: center; min-height: 1.5rem; }
+
+/* A trick: one card in front of each of four seats, in a diamond. */
+.trick { --card-w: var(--card-mid); column-gap: calc(var(--card-w) * 0.14); display: grid; grid-template-columns: repeat(3, var(--card-w)); grid-template-rows: repeat(4, calc(var(--card-w) * 0.7)); }
+.trick-spot { display: block; }
+.t-top { grid-column: 2; grid-row: 1 / span 2; }
+.t-left { grid-column: 1; grid-row: 2 / span 2; }
+.t-right { grid-column: 3; grid-row: 2 / span 2; }
+.t-bottom { grid-column: 2; grid-row: 3 / span 2; }
+.pc.is-winning { box-shadow: 0 0 0 3px var(--brass), 0 2px 5px var(--shadow); }
+.trick-seats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-inline: auto; max-width: 560px; width: 100%; }
+.shell .trick-seat { min-width: 0; text-align: center; }
+.trick-seat .seat-head { justify-content: center; }
+.trick-seat .seat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seat-me > .pills { margin-bottom: 2px; }
+.round-summary { max-width: 340px; }
+.bid-buttons { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.bid-buttons .btn { min-width: 2.7em; }
+.shell-round b { color: var(--ivory); }
+
+.suit-red { color: #ff8f8f; }
+.suit-btn { font-size: 1.3rem; line-height: 1; min-width: 2.6em; }
+.suit-btn.suit-red { color: #ffb0b0; }
+
+@media (max-width: 520px) {
+  .shell { padding-block: 0; }
+  .shell .seat { min-width: 84px; }
+  .shell .prompt-buttons .btn { padding-inline: 0.7em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc { transition: none; }
+  .pc.is-new { animation: none; }
+}

@@ -186,7 +186,7 @@ test('the host can switch the room to Go Fish and play it', async () => {
   const gil = client(a.session, 'fishroom');
   const first = await gil.next((m) => m.t === 'room');
   assert.equal(first.room.game, 'jacks');
-  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'blackjack', 'holdem', 'gofish']);
+  assert.deepEqual(first.room.games.map((game) => game.id), ['jacks', 'blackjack', 'holdem', 'gofish', 'crazy8', 'rummy', 'hearts', 'spades', 'solitaire']);
   const hal = client(b.session, 'fishroom');
   await hal.next((m) => m.t === 'room');
 

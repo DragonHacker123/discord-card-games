@@ -1,0 +1,26 @@
+/* Solitaire: seven columns that fill the width, and a bar for each player's progress. */
+.sol-table { gap: clamp(8px, 1.6vh, 16px); justify-content: flex-start; }
+.sol-clock { color: var(--ivory); font-size: 1.15rem; font-weight: 800; }
+.sol-race { gap: 4px 10px; }
+.shell .sol-racer { flex: 1 1 110px; max-width: 200px; min-width: 96px; padding: 4px 8px 6px; }
+.sol-racer.is-you .seat-name { color: var(--brass); }
+.sol-bar { background: var(--leather-deep); border: 1px solid var(--line); border-radius: 999px; height: 18px; overflow: hidden; position: relative; }
+.sol-bar span { background: var(--brass); display: block; height: 100%; opacity: 0.75; transition: width 0.3s; }
+.sol-bar b { font-size: 0.78rem; font-variant-numeric: tabular-nums; inset: 0; line-height: 16px; position: absolute; text-align: center; }
+
+.sol-board { display: flex; flex-direction: column; gap: clamp(8px, 1.6vw, 16px); margin-inline: auto; max-width: 660px; width: 100%; }
+.sol-row { align-items: start; display: grid; gap: clamp(3px, 1vw, 10px); grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.sol-board .pc { border-radius: 6%; width: 100%; }
+.sol-board .pc.back-face { border: 2px solid var(--ivory); }
+.sol-board .back-face::after { display: none; }
+.sol-col { display: flex; flex-direction: column; min-height: 40px; }
+/* A margin in % is measured against the column's width, which is the card's width; a card is 140% of that tall. */
+.sol-col .pc + .pc { margin-top: -94%; }
+.sol-col .back-face + .pc { margin-top: -120%; }
+.sol-home, .sol-again { align-items: center; color: var(--muted); display: flex; font-size: clamp(1rem, 5vw, 1.8rem); justify-content: center; }
+.sol-home.suit-red { color: #ff8f8f; }
+button.sol-again:not(:disabled) { color: var(--brass); opacity: 1; }
+#solitaire .prompt { min-height: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .sol-bar span { transition: none; }
+}

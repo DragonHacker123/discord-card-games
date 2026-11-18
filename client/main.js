@@ -7,6 +7,11 @@ import { startOnline } from '../games/jacks/ui.js';
 import { createFishTable } from '../games/gofish/table.js';
 import { createBlackjackTable } from '../games/blackjack/table.js';
 import { createHoldemTable } from '../games/holdem/table.js';
+import { createCrazyTable } from '../games/crazy8/table.js';
+import { createRummyTable } from '../games/rummy/table.js';
+import { createHeartsTable } from '../games/hearts/table.js';
+import { createSpadesTable } from '../games/spades/table.js';
+import { createSolitaireTable } from '../games/solitaire/table.js';
 
 const inDiscord = new URLSearchParams(location.search).has('frame_id');
 // Inside Discord, everything goes through its proxy.
@@ -22,7 +27,7 @@ const state = {
   retries: 0,
   stopped: false,
   inGame: false,
-  playing: null, // which game's table is showing: 'jacks' or 'gofish'
+  playing: null, // the id of the game whose table is showing
   endArmed: false,
 };
 
@@ -57,7 +62,7 @@ function showNotice(text, action) {
   notice.hidden = false;
   roomScreen.hidden = true;
   document.getElementById('game').hidden = true;
-  for (const id of ['gofish', 'blackjack', 'holdem']) {
+  for (const id of Object.keys(tables)) {
     const other = document.getElementById(id);
     if (other) other.hidden = true;
   }
@@ -87,7 +92,8 @@ const table = startOnline({
   },
 });
 
-const fish = createFishTable({
+// Every other game's table is handed the same few things.
+const hooks = {
   act: (action) => send({ t: 'act', action }),
   away: (seat) => Boolean(state.room?.seats[seat]?.away),
   isHost,
@@ -95,33 +101,25 @@ const fish = createFishTable({
   lobby: () => send({ t: 'lobby' }),
   cardSvg: table.cardSvg,
   escapeHtml,
-});
-const blackjack = createBlackjackTable({
-  act: (action) => send({ t: 'act', action }),
-  away: (seat) => Boolean(state.room?.seats[seat]?.away),
-  isHost,
-  deal: () => send({ t: 'start' }),
-  lobby: () => send({ t: 'lobby' }),
-  cardSvg: table.cardSvg,
-  escapeHtml,
-});
-const holdem = createHoldemTable({
-  act: (action) => send({ t: 'act', action }),
-  away: (seat) => Boolean(state.room?.seats[seat]?.away),
-  isHost,
-  deal: () => send({ t: 'start' }),
-  lobby: () => send({ t: 'lobby' }),
-  cardSvg: table.cardSvg,
-  escapeHtml,
-});
-const tables = { jacks: table, gofish: fish, blackjack, holdem };
+};
+const tables = {
+  jacks: table,
+  gofish: createFishTable(hooks),
+  blackjack: createBlackjackTable(hooks),
+  holdem: createHoldemTable(hooks),
+  crazy8: createCrazyTable(hooks),
+  rummy: createRummyTable(hooks),
+  hearts: createHeartsTable(hooks),
+  spades: createSpadesTable(hooks),
+  solitaire: createSolitaireTable(hooks),
+};
 
-/** A row of buttons for how many hands a game lasts. */
-function handsPicker(choices, current, field) {
+/** A row of buttons for one setting of a game, such as how many hands it lasts. */
+function handsPicker(choices, current, field, label = 'Hands') {
   const row = make('div', 'rounds-picker');
   row.setAttribute('role', 'group');
-  row.setAttribute('aria-label', 'Hands in a game');
-  row.append(make('span', '', 'Hands'));
+  row.setAttribute('aria-label', label);
+  row.append(make('span', '', label));
   for (const count of choices) {
     const choice = button(String(count), () => send({ t: 'rules', rules: { [field]: count } }), 'btn btn-small');
     choice.setAttribute('aria-pressed', String(current === count));
@@ -254,6 +252,18 @@ function renderRoom() {
     if (host) setup.append(handsPicker([10, 20, 40], room.rules.hands, 'hands'));
     setup.append(make('p', 'settings-summary', `${room.rules.hands} hands. Everyone starts with 1,000 chips. Blinds 10 and 20. Most chips wins.`));
   }
+  if (room.game === 'hearts') {
+    if (host) setup.append(handsPicker([50, 100], room.rules.target, 'target', 'Play to'));
+    setup.append(make('p', 'settings-summary', `Four players. The game ends when someone reaches ${room.rules.target}. Lowest score wins.`));
+  }
+  if (room.game === 'spades') {
+    if (host) setup.append(handsPicker([150, 250, 500], room.rules.target, 'target', 'Play to'));
+    setup.append(make('p', 'settings-summary', `Four players in two pairs. Your partner sits two seats from you. First pair to ${room.rules.target} wins.`));
+  }
+  if (room.game === 'solitaire') {
+    if (host) setup.append(handsPicker([5, 10, 15], room.rules.minutes, 'minutes', 'Minutes'));
+    setup.append(make('p', 'settings-summary', `Everyone plays the same deal at once. Most cards put away in ${room.rules.minutes} minutes wins.`));
+  }
   const hint = make('p', 'room-hint', hintText);
   hint.setAttribute('role', 'alert');
   setup.append(hint);
@@ -279,10 +289,7 @@ function onRoom(room) {
     return;
   }
   if (wasPlaying || state.inGame) {
-    table.close();
-    fish.close();
-    blackjack.close();
-    holdem.close();
+    for (const one of Object.values(tables)) one.close();
     state.inGame = false;
     state.playing = null;
   }

@@ -1,0 +1,4 @@
+/* Crazy Eights. Everything else comes from the shared styles. */
+.c8-suit { background: var(--leather-deep); border: 1px solid var(--line); border-radius: 999px; font-weight: 800; margin: 0; padding: 2px 12px; }
+.c8-shown { --card-w: var(--card-small); }
+#crazy8 .seat-me { max-width: 100%; }
